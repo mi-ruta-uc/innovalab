@@ -112,6 +112,38 @@ section.wizard-active {
 }
 
 /* Custom UI Elements */
+.assessment-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--bg-light);
+    border: 2px solid transparent;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.assessment-option:hover {
+    border-color: var(--primary);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px var(--glass-shadow);
+}
+
+.question-fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.question-slide-start {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
 .scenario-btn {
     color: var(--text-secondary);
 }
