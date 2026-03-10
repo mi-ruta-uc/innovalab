@@ -1,22 +1,25 @@
 :root {
-    --primary: #4f46e5;
-    --primary-glow: rgba(79, 70, 229, 0.4);
-    --secondary: #0ea5e9;
-    --accent: #f59e0b;
-    --bg-light: #f8fafc;
-    --bg-dark: #0f172a;
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
+    --primary: #6366f1; /* Indigo */
+    --primary-glow: rgba(99, 102, 241, 0.4);
+    --secondary: #14b8a6; /* Teal */
+    --secondary-glow: rgba(20, 184, 166, 0.4);
+    --accent: #f43f5e; /* Rose */
+    --bg-light: #fafafa;
+    --bg-dark: #09090b; /* Deep zinc */
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: rgba(0, 0, 0, 0.05);
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
 }
 
 [data-theme="dark"] {
-    --bg-light: #0f172a;
-    --glass-bg: rgba(15, 23, 42, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
+    --bg-light: #09090b;
+    --glass-bg: rgba(24, 24, 27, 0.65); /* Zinc-900 */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
 }
 
 * {
@@ -36,10 +39,10 @@ body {
 /* Glassmorphism Classes */
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    box-shadow: 0 8px 32px 0 var(--glass-shadow);
 }
 
 .glass-card {
@@ -138,8 +141,8 @@ section.wizard-active {
 }
 
 .btn-premium:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px var(--primary-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px var(--primary-glow);
 }
 
 /* Wizard logic now handles section visibility instead of sabana classes */
