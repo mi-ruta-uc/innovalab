@@ -1,4 +1,4 @@
-    // API Key and Gemini instance will be loaded dynamically
+// API Key and Gemini instance will be loaded dynamically
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Logic ---
@@ -80,78 +80,211 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWizard(); // Initialize wizard
 
     // --- Assessment Logic ---
-    const questions = {
+    const assessmentData = {
         personal: [
-            "¿Cómo describirías tu progreso en habilidades en los últimos 3 años?",
-            "¿Qué tan eficientes son tus métodos de estudio/trabajo actuales?",
-            "¿Qué tan ambiciosos son tus objetivos para tu impacto en 5 años?",
-            "¿Qué tan proactivo eres buscando nuevas oportunidades?"
+            {
+                text: "¿Cómo describes tu aprendizaje de nuevas herramientas frente al cambio?",
+                options: [
+                    { label: "Evito herramientas nuevas hasta que son obligatorias", value: 10 },
+                    { label: "Aprendo lo básico si el trabajo me lo exige", value: 30 },
+                    { label: "Busco proactivamente cursos para mantenerme actualizado", value: 60 },
+                    { label: "Soy pionero; experimento con herramientas emergentes antes que otros", value: 90 }
+                ]
+            },
+            {
+                text: "¿Qué haces cuando tus métodos habituales de trabajo fallan?",
+                options: [
+                    { label: "Me frustro y busco excusas o instrucciones externas", value: 10 },
+                    { label: "Busco soluciones rápidas a corto plazo", value: 30 },
+                    { label: "Analizo la causa raíz y ajusto mi proceso de inmediato", value: 60 },
+                    { label: "Transformo el fallo en una oportunidad para rediseñar todo el método", value: 90 }
+                ]
+            },
+            {
+                text: "¿Cómo gestionas tus objetivos a 3-5 años?",
+                options: [
+                    { label: "No tengo objetivos claros a largo plazo", value: 10 },
+                    { label: "Tengo ideas generales pero sin plan escrito", value: 30 },
+                    { label: "Tengo metas definidas con hitos de revisión", value: 60 },
+                    { label: "Redefino mis metas constantemente basándome en disrupciones del mercado", value: 90 }
+                ]
+            },
+            {
+                text: "¿De qué forma compartes conocimiento o nuevas ideas?",
+                options: [
+                    { label: "Solo opino si me preguntan directamente", value: 10 },
+                    { label: "Comparto ideas en reuniones formales de equipo", value: 30 },
+                    { label: "Lidero iniciativas para proponer mejoras constantemente", value: 60 },
+                    { label: "Mentorizo y creo redes de impacto fuera de mi equipo directo", value: 90 }
+                ]
+            }
         ],
         org: [
-            "¿Cómo describirías el crecimiento de mercado de tu organización?",
-            "¿Qué tan eficientes son tus procesos internos para generar valor?",
-            "¿Qué tan ambiciosos son tus objetivos de expansión?",
-            "¿Qué tan proactiva es tu organización con nuevas tecnologías?"
+            {
+                text: "¿Cómo maneja tu organización el lanzamiento de nuevos productos o servicios?",
+                options: [
+                    { label: "Tratamos de no cambiar lo que ya funciona bien", value: 10 },
+                    { label: "Mejoramos productos solo cuando la competencia nos obliga", value: 30 },
+                    { label: "Tenemos procesos continuos basados en feedback de clientes", value: 60 },
+                    { label: "Dedicamos presupuesto específico a iterar y probar ideas disruptivas", value: 90 }
+                ]
+            },
+            {
+                text: "¿Qué sucede cuando un proyecto o iniciativa nueva fracasa?",
+                options: [
+                    { label: "Se buscan culpables y se penaliza el error", value: 10 },
+                    { label: "Se ignora y tratamos de olvidarlo rápidamente", value: 30 },
+                    { label: "Se hace un análisis post-mortem para documentar qué falló", value: 60 },
+                    { label: "Celebramos el aprendizaje y transferimos el conocimiento a toda el área", value: 90 }
+                ]
+            },
+            {
+                text: "¿Cómo fluye la información en la estructura organizacional?",
+                options: [
+                    { label: "En silos; cada departamento tiene sus propios secretos", value: 10 },
+                    { label: "Jerárquicamente de arriba hacia abajo", value: 30 },
+                    { label: "A través de plataformas colaborativas y reuniones cruzadas", value: 60 },
+                    { label: "Redes interconectadas transparentes, accesibles para cualquier talento", value: 90 }
+                ]
+            },
+            {
+                text: "¿Cuál es la postura principal hacia la adopción de Inteligencia Artificial?",
+                options: [
+                    { label: "Es un gasto o moda que no aplica a nosotros", value: 10 },
+                    { label: "Automatizamos tareas operativas básicas de forma aislada", value: 30 },
+                    { label: "La vemos como un habilitador clave para mejorar la experiencia del cliente", value: 60 },
+                    { label: "Es el núcleo de nuestra estrategia; toda la organización la utiliza a diario", value: 90 }
+                ]
+            }
         ]
     };
 
     const questionnaireDiv = document.getElementById('questionnaire');
+    const progressDiv = document.getElementById('question-progress');
     const scenarioBtns = document.querySelectorAll('.scenario-btn');
+    const calcLoading = document.getElementById('calc-loading');
+    const resultsDisplay = document.getElementById('results-display');
+    const feedbackText = document.getElementById('assessment-feedback');
+    
     let activeScenario = 'personal';
+    let currentQuestionIdx = 0;
+    let userAnswers = [];
+    let growthChart;
 
-    const renderQuestions = (scenario) => {
+    const renderQuestion = () => {
         if (!questionnaireDiv) return;
-        questionnaireDiv.innerHTML = questions[scenario].map((q, i) => `
-            <div class="space-y-3">
-                <label class="block font-semibold text-sm uppercase tracking-wide opacity-70">${q}</label>
-                <select class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 focus:ring-2 focus:ring-primary outline-none transition-all">
-                    <option value="10">Incubación (10%)</option>
-                    <option value="30">En Marcha (30%)</option>
-                    <option value="60" selected>Consolidado (60%)</option>
-                    <option value="90">Liderazgo (90%)</option>
-                </select>
-            </div>
-        `).join('');
+        
+        const qList = assessmentData[activeScenario];
+        if (currentQuestionIdx >= qList.length) {
+            calculateAndShowResults(qList);
+            return;
+        }
+
+        const q = qList[currentQuestionIdx];
+        if (progressDiv) progressDiv.innerText = `Pregunta ${currentQuestionIdx + 1} de ${qList.length}`;
+
+        questionnaireDiv.classList.add('question-fade-out');
+        
+        setTimeout(() => {
+            questionnaireDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h3 class="text-2xl md:text-3xl font-bold leading-tight">${q.text}</h3>
+                    <div class="space-y-3 mt-8">
+                        ${q.options.map((opt, i) => `
+                            <button class="assessment-option group" data-val="${opt.value}" data-label="${opt.label}">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-sm font-bold flex items-center justify-center mr-4 group-hover:bg-primary group-hover:text-white transition-colors dark:text-gray-300">
+                                    ${String.fromCharCode(65 + i)}
+                                </div>
+                                <span class="flex-1 text-sm md:text-base">${opt.label}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            const optBtns = questionnaireDiv.querySelectorAll('.assessment-option');
+            optBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    userAnswers.push({ val: parseInt(btn.dataset.val), label: btn.dataset.label });
+                    currentQuestionIdx++;
+                    renderQuestion();
+                });
+            });
+
+            questionnaireDiv.classList.remove('question-fade-out');
+            questionnaireDiv.classList.add('question-slide-start');
+            void questionnaireDiv.offsetWidth; // Reflow
+            questionnaireDiv.classList.remove('question-slide-start');
+        }, 200);
+    };
+
+    const resetAssessment = (scenario) => {
+        activeScenario = scenario || 'personal';
+        currentQuestionIdx = 0;
+        userAnswers = [];
+        if (resultsDisplay) resultsDisplay.classList.add('hidden');
+        if (calcLoading) calcLoading.classList.add('hidden');
+        if (questionnaireDiv) questionnaireDiv.classList.remove('hidden');
+        renderQuestion();
     };
 
     scenarioBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             scenarioBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            activeScenario = btn.dataset.scenario || 'personal';
-            renderQuestions(activeScenario);
+            resetAssessment(btn.dataset.scenario);
         });
     });
 
-    renderQuestions('personal');
+    resetAssessment('personal');
 
-    let growthChart;
-    const calcBtn = document.getElementById('calc-results');
-    const resultsDisplay = document.getElementById('results-display');
+    const calculateAndShowResults = async (qList) => {
+        if (questionnaireDiv) questionnaireDiv.classList.add('hidden');
+        if (progressDiv) progressDiv.innerText = "Analizando Resultados...";
+        if (calcLoading) calcLoading.classList.remove('hidden');
 
-    calcBtn?.addEventListener('click', () => {
-        if (!questionnaireDiv || !resultsDisplay) return;
-        const selects = questionnaireDiv.querySelectorAll('select');
-        const values = Array.from(selects).map(s => parseInt(s.value));
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const avg = userAnswers.reduce((sum, a) => sum + a.val, 0) / userAnswers.length;
         const target = Math.min(100, Math.max(avg + 25, 80));
 
-        resultsDisplay.classList.remove('hidden');
-        resultsDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        let aiFeedbackHtml = `<p class="mb-4">Tu madurez actual es del <span class="font-bold text-primary">${avg.toFixed(0)}%</span> y existe una brecha del <span class="font-bold text-secondary">${(target - avg).toFixed(0)}%</span> para alcanzar el estado ideal de innovación.</p>`;
+
+        try {
+            const promptContext = userAnswers.map((a, i) => `${qList[i].text}: ${a.label}`).join(" | ");
+            const prompt = `Considérate un consultor estratega de innovación. Analiza este perfil (${activeScenario}): [${promptContext}]. Describe su fortaleza principal y su mayor debilidad/oportunidad de mejora estratégica en exactamente un párrafo impactante de no más de 50 palabras.`;
+            
+            const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+            const API_KEY = "AIzaSyAHytylWjDL_ZYXa41FCnAecQEm7H34AM0"; // Shared key for both tools
+            const genAI = new GoogleGenerativeAI(API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const result = await model.generateContent(prompt);
+            const aiText = (await result.response).text();
+            
+            aiFeedbackHtml += `<div class="p-4 bg-primary/10 border-l-4 border-primary rounded-r-xl italic text-sm"><strong>Análisis IA:</strong> ${aiText}</div>`;
+        } catch (error) {
+            console.error("AI Analysis failed:", error);
+            aiFeedbackHtml += `<p class="text-sm opacity-70">Nota: El análisis avanzado con IA no está disponible en este momento.</p>`;
+        }
+
+        if (calcLoading) calcLoading.classList.add('hidden');
+        if (resultsDisplay) {
+            resultsDisplay.classList.remove('hidden');
+            resultsDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (feedbackText) feedbackText.innerHTML = aiFeedbackHtml;
 
         if (growthChart) growthChart.destroy();
-        
         const canvas = document.getElementById('growthChart');
         if (canvas) {
             const ctx = canvas.getContext('2d');
             growthChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Estado Actual', 'Aspiración de Crecimiento'],
+                    labels: ['Estado Actual', 'Aspiración'],
                     datasets: [{
-                        label: 'Nivel de Madurez',
+                        label: 'Nivel',
                         data: [avg, target],
-                        backgroundColor: ['rgba(79, 70, 229, 0.4)', 'rgba(79, 70, 229, 1)'],
+                        backgroundColor: ['rgba(99, 102, 241, 0.4)', 'rgba(20, 184, 166, 0.8)'],
                         borderRadius: 12,
                         borderWidth: 0
                     }]
@@ -159,31 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
-                    },
+                    scales: { y: { beginAtZero: true, max: 100 } },
                     plugins: { legend: { display: false } }
                 }
             });
         }
-
-        const feedback = document.getElementById('assessment-feedback');
-        if (feedback) {
-            feedback.innerHTML = `
-                Tu madurez actual es del <span class="font-bold text-primary">${avg.toFixed(0)}%</span>. 
-                Existe una brecha estratégica del <span class="font-bold text-secondary">${(target - avg).toFixed(0)}%</span> para alcanzar tus objetivos. 
-                La innovación será el puente para cerrar este espacio.
-            `;
-        }
-
-        // Advance to next wizard step automatically when showing results
-        setTimeout(() => { 
-            if(currentStep === 1) {
-                currentStep++;
-                updateWizard();
-            }
-        }, 2000);
-    });
+    };
 
     // --- AI Idea Generator (Real Gemini Integration) ---
     const aiInput = document.getElementById('ai-input');
