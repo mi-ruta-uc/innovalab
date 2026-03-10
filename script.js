@@ -254,7 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const prompt = `Considérate un consultor estratega de innovación. Analiza este perfil (${activeScenario}): [${promptContext}]. Describe su fortaleza principal y su mayor debilidad/oportunidad de mejora estratégica en exactamente un párrafo impactante de no más de 50 palabras.`;
             
             const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-            const API_KEY = "AIzaSyAHytylWjDL_ZYXa41FCnAecQEm7H34AM0"; // Shared key for both tools
+            let API_KEY = localStorage.getItem('gemini_api_key');
+            if (!API_KEY || API_KEY.trim() === '') {
+                API_KEY = prompt("Seguridad de GitHub: Por favor, ingresa tu API Key de Gemini:");
+                if (API_KEY) localStorage.setItem('gemini_api_key', API_KEY);
+            }
             const genAI = new GoogleGenerativeAI(API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const result = await model.generateContent(prompt);
@@ -272,19 +276,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const userEmail = emailInput ? emailInput.value.trim() : "";
             const scriptURL = "https://script.google.com/macros/s/AKfycbzXTOtYtvxRbDkvxw3smFpaYO3oA6hjnNJgDLHRgDVzH9gd46RmMNxkwyuRnyFth3Eb/exec";
             
-            const params = new URLSearchParams();
-            params.append("Email", userEmail || "Anónimo");
-            params.append("Tipo", activeScenario === "personal" ? "Personal" : "Organizacional");
-            params.append("Madurez", avg.toFixed(0) + "%");
-            params.append("Brecha", (target - avg).toFixed(0) + "%");
-            params.append("Respuestas_Brutas", userAnswers.map((a, i) => `Q${i+1}: ${a.label}`).join(" | "));
-            params.append("Analisis_AI", aiText || "Error o sin IA");
+            const formData = new FormData();
+            formData.append("Email", userEmail || "Anónimo");
+            formData.append("Tipo", activeScenario === "personal" ? "Personal" : "Organizacional");
+            formData.append("Madurez", avg.toFixed(0) + "%");
+            formData.append("Brecha", (target - avg).toFixed(0) + "%");
+            formData.append("Respuestas_Brutas", userAnswers.map((a, i) => `Q${i+1}: ${a.label}`).join(" | "));
+            formData.append("Analisis_AI", aiText || "Error o sin IA");
 
             fetch(scriptURL, {
                 method: "POST",
                 mode: "no-cors",
-                body: params
-            }).catch(e => console.error("Sheets Sync Request Error", e));
+                body: formData
+            }).then(() => console.log("Sheets Sync Finalizado"))
+              .catch(e => console.error("Sheets Sync Request Error", e));
         } catch (e) {
             console.error("Sheets Sync Prep Error", e);
         }
@@ -349,7 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Dynamic import prevents module failure from breaking the rest of the site
             const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-            const API_KEY = "AIzaSyAHytylWjDL_ZYXa41FCnAecQEm7H34AM0";
+            let API_KEY = localStorage.getItem('gemini_api_key');
+            if (!API_KEY || API_KEY.trim() === '') {
+                API_KEY = prompt("Seguridad de GitHub: Por favor, ingresa tu API Key de Gemini:");
+                if (API_KEY) localStorage.setItem('gemini_api_key', API_KEY);
+            }
             const genAI = new GoogleGenerativeAI(API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const prompt = `Eres un consultor experto en innovación. Basado en el siguiente desafío, proporciona 3 estrategias de innovación impactantes, directas y creativas. Desafío: "${aiInput.value}". Responde en un formato profesional para una terminal, usando etiquetas como [ESTRATEGIA] y [ACCIÓN]. Limítate a 150 palabras.`;
