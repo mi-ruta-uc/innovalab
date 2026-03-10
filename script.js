@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Dynamic import prevents module failure from breaking the rest of the site
             const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-            const API_KEY = "AIzaSyBh3vc_LZ-szEOki-6L81Jpx5jHS3uud3Y";
+            const API_KEY = "AIzaSyAHytylWjDL_ZYXa41FCnAecQEm7H34AM0";
             const genAI = new GoogleGenerativeAI(API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const prompt = `Eres un consultor experto en innovación. Basado en el siguiente desafío, proporciona 3 estrategias de innovación impactantes, directas y creativas. Desafío: "${aiInput.value}". Responde en un formato profesional para una terminal, usando etiquetas como [ESTRATEGIA] y [ACCIÓN]. Limítate a 150 palabras.`;
