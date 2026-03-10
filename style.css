@@ -87,21 +87,25 @@ body {
     transition: width 0.1s ease;
 }
 
-/* Section Transitions */
+/* === WIZARD LAYOUT === */
 section {
     min-height: 100vh;
-    display: flex;
+    display: none; /* Hide all by default */
     flex-direction: column;
     justify-content: center;
-    padding: 4rem 1rem;
+    padding: 7rem 1rem 4rem; /* Top padding for fixed nav */
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    transform: translateX(30px);
 }
 
-section.visible {
-    opacity: 1;
-    transform: translateY(0);
+section.wizard-active {
+    display: flex;
+    animation: slideIn 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 /* Custom UI Elements */
@@ -138,16 +142,4 @@ section.visible {
     box-shadow: 0 10px 20px var(--primary-glow);
 }
 
-/* Dynamic Sabana Visibility */
-.sabana-hidden {
-    display: none !important;
-}
-
-@keyframes revealSection {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.sabana-reveal {
-    animation: revealSection 0.8s ease-out forwards;
-}
+/* Wizard logic now handles section visibility instead of sabana classes */
