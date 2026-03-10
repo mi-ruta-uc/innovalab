@@ -112,6 +112,16 @@ section.wizard-active {
 }
 
 /* Custom UI Elements */
+.scenario-btn {
+    color: var(--text-secondary);
+}
+
+.scenario-btn.active {
+    background: var(--bg-light);
+    color: var(--text-primary);
+    box-shadow: 0 4px 6px -1px var(--glass-shadow);
+}
+
 .btn-premium {
     position: relative;
     overflow: hidden;
