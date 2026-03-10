@@ -26,41 +26,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     themeToggle?.addEventListener('click', toggleTheme);
 
-    // --- Scroll Progress ---
+    // --- Step-by-Step Wizard Logic ---
+    const wizardSections = Array.from(document.querySelectorAll('section'));
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
     const progressBar = document.getElementById('scroll-progress');
-    window.addEventListener('scroll', () => {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
-        if (progressBar) progressBar.style.width = scrolled + '%';
-    });
+    let currentStep = 0;
 
-    // --- Interaction Animations (Intersection Observer) ---
-    const sections = document.querySelectorAll('section');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+    const updateWizard = () => {
+        wizardSections.forEach((sec, idx) => {
+            if (idx === currentStep) sec.classList.add('wizard-active');
+            else sec.classList.remove('wizard-active');
+        });
+
+        navLinks.forEach((link, idx) => {
+            if (idx === currentStep) {
+                link.classList.add('text-primary');
+                link.classList.remove('text-secondary');
+            } else {
+                link.classList.remove('text-primary');
+                link.classList.add('text-secondary');
             }
         });
-    }, { threshold: 0.2 });
 
-    sections.forEach(section => observer.observe(section));
+        if (progressBar) {
+            const progress = (currentStep / (wizardSections.length - 1)) * 100;
+            progressBar.style.width = progress + '%';
+        }
 
-    // --- Dynamic Sabana Flow ---
-    const revealSabana = () => {
-        const hiddenElements = document.querySelectorAll('.sabana-hidden');
-        hiddenElements.forEach(el => {
-            el.classList.remove('sabana-hidden');
-            el.classList.add('sabana-reveal');
-        });
-        localStorage.setItem('sabanaUnlocked', 'true');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (localStorage.getItem('sabanaUnlocked') === 'true') {
-        const hiddenElements = document.querySelectorAll('.sabana-hidden');
-        hiddenElements.forEach(el => el.classList.remove('sabana-hidden'));
-    }
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.wizard-next')) {
+            e.preventDefault();
+            if (currentStep < wizardSections.length - 1) {
+                currentStep++;
+                updateWizard();
+            }
+        }
+    });
+
+    navLinks.forEach((link, idx) => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentStep = idx;
+            updateWizard();
+        });
+    });
+
+    updateWizard(); // Initialize wizard
 
     // --- Assessment Logic ---
     const questions = {
@@ -159,10 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        // Reveal the rest of the application
-        if (localStorage.getItem('sabanaUnlocked') !== 'true') {
-            setTimeout(revealSabana, 800);
-        }
+        // Advance to next wizard step automatically when showing results
+        setTimeout(() => { 
+            if(currentStep === 1) {
+                currentStep++;
+                updateWizard();
+            }
+        }, 2000);
     });
 
     // --- AI Idea Generator (Real Gemini Integration) ---
