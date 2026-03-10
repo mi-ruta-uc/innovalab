@@ -247,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = Math.min(100, Math.max(avg + 25, 80));
 
         let aiFeedbackHtml = `<p class="mb-4">Tu madurez actual es del <span class="font-bold text-primary">${avg.toFixed(0)}%</span> y existe una brecha del <span class="font-bold text-secondary">${(target - avg).toFixed(0)}%</span> para alcanzar el estado ideal de innovación.</p>`;
+        let aiText = "";
 
         try {
             const promptContext = userAnswers.map((a, i) => `${qList[i].text}: ${a.label}`).join(" | ");
@@ -257,13 +258,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const genAI = new GoogleGenerativeAI(API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const result = await model.generateContent(prompt);
-            const aiText = (await result.response).text();
+            aiText = (await result.response).text();
             
             aiFeedbackHtml += `<div class="p-4 bg-primary/10 border-l-4 border-primary rounded-r-xl italic text-sm"><strong>Análisis IA:</strong> ${aiText}</div>`;
         } catch (error) {
             console.error("AI Analysis failed:", error);
             aiFeedbackHtml += `<p class="text-sm opacity-70">Nota: El análisis avanzado con IA no está disponible en este momento.</p>`;
         }
+
+        // --- Google Sheets Integration ---
+        try {
+            const emailInput = document.getElementById('assessment-email');
+            const userEmail = emailInput ? emailInput.value.trim() : "";
+            const scriptURL = "https://script.google.com/macros/s/AKfycbzXTOtYtvxRbDkvxw3smFpaYO3oA6hjnNJgDLHRgDVzH9gd46RmMNxkwyuRnyFth3Eb/exec";
+            
+            const params = new URLSearchParams();
+            params.append("Email", userEmail || "Anónimo");
+            params.append("Tipo", activeScenario === "personal" ? "Personal" : "Organizacional");
+            params.append("Madurez", avg.toFixed(0) + "%");
+            params.append("Brecha", (target - avg).toFixed(0) + "%");
+            params.append("Respuestas_Brutas", userAnswers.map((a, i) => `Q${i+1}: ${a.label}`).join(" | "));
+            params.append("Analisis_AI", aiText || "Error o sin IA");
+
+            fetch(scriptURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: params
+            }).catch(e => console.error("Sheets Sync Request Error", e));
+        } catch (e) {
+            console.error("Sheets Sync Prep Error", e);
+        }
+        // ---------------------------------
 
         if (calcLoading) calcLoading.classList.add('hidden');
         if (resultsDisplay) {
